@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI自媒体学习Agent - 智能版</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin: 30px 0;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        /* 问卷部分 */
+        .questionnaire {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        
+        .question-section {
+            margin-bottom: 35px;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        .question-title {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .question-subtitle {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .option {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .option:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+        }
+        
+        .option input[type="radio"],
+        .option input[type="checkbox"] {
+            margin-right: 12px;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+        
+        .progress-text {
+            text-align: center;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* 结果展示 */
+        .result-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        
+        .user-profile {
+            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .profile-title {
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .profile-tag {
+            display: inline-block;
+            padding: 5px 15px;
+            background: white;
+            border-radius: 20px;
+            margin: 5px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .learning-path {
+            margin-top: 30px;
+        }
+        
+        .path-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .phase {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .phase-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .phase-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .phase-duration {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .task-list {
+            margin-top: 15px;
+        }
+        
+        .task {
+            padding: 10px 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .task-check {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+        
+        .chat-assistant {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+        
+        .chat-assistant:hover {
+            transform: scale(1.1);
+        }
+        
+        .chat-window {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 400px;
+            height: 500px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-close {
+            cursor: pointer;
+            font-size: 24px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            outline: none;
+        }
+        
+        .chat-send {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+        }
+        
+        .message.user {
+            justify-content: flex-end;
+        }
+        
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 15px;
+        }
+        
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .message.ai .message-bubble {
+            background: #f0f0f0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AI自媒体学习规划师</h1>
+            <p>3分钟个性化测评，定制你的专属学习路径</p>
+        </div>
+        
+        <!-- 问卷部分 -->
+        <div id="questionnaire" class="questionnaire">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+            <div class="progress-text">
+                <span id="currentQuestion">0</span> / <span id="totalQuestions">8</span>
+            </div>
+            
+            <!-- 问题容器 -->
+            <div id="questionContainer"></div>
+            
+            <div class="btn-group">
+                <button class="btn btn-secondary" id="prevBtn" onclick="previousQuestion()">上一题</button>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">下一题</button>
+            </div>
+        </div>
+        
+        <!-- 结果展示 -->
+        <div id="resultContainer" class="result-container hidden">
+            <div class="user-profile">
+                <h2 class="profile-title">📊 你的学习画像</h2>
+                <div id="profileTags"></div>
+            </div>
+            
+            <div class="learning-path">
+                <h2 class="path-title">🎯 为你定制的21天学习路径</h2>
+                <div id="pathContent"></div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="restartQuiz()">重新评测</button>
+                <button class="btn btn-primary" onclick="startLearning()">开始学习</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI助手 -->
+    <div class="chat-assistant" onclick="toggleChat()">💬</div>
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <span>AI学习助手</span>
+            <span class="chat-close" onclick="toggleChat()">×</span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message ai">
+                <div class="message-bubble">
+                    你好！我是你的AI自媒体学习助手，有什么可以帮助你的吗？
+                </div>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chatInput" placeholder="输入你的问题..." onkeypress="if(event.key==='Enter')sendMessage()">
+            <button class="chat-send" onclick="sendMessage()">发送</button>
+        </div>
+    </div>
+    
+    <script>
+        // 问题数据
+        const questions = [
+            {
+                id: 1,
+                title: "你目前的状态是？",
+                subtitle: "了解你的时间安排，为你规划合适的学习强度",
+                type: "single",
+                options: [
+                    { value: "full_time_regular", label: "全职上班族（朝九晚五）", timeScore: 2 },
+                    { value: "full_time_flexible", label: "全职上班族（时间灵活）", timeScore: 3 },
+                    { value: "freelancer", label: "自由职业者", timeScore: 4 },
+                    { value: "parent", label: "全职宝妈/宝爸", timeScore: 3 },
+                    { value: "student", label: "学生", timeScore: 4 },
+                    { value: "unemployed", label: "待业/全职做副业", timeScore: 5 }
+                ]
+            },
+            {
+                id: 2,
+                title: "你每天可以投入AI自媒体的时间是？",
+                subtitle: "合理的时间投入是成功的基础",
+                type: "single",
+                options: [
+                    { value: "less_2", label: "少于2小时", timeAvailable: 1 },
+                    { value: "2_4", label: "2-4小时", timeAvailable: 2 },
+                    { value: "4_6", label: "4-6小时", timeAvailable: 3 },
+                    { value: "more_6", label: "6小时以上", timeAvailable: 4 }
+                ]
+            },
+            {
+                id: 3,
+                title: "你对AI工具的了解程度？",
+                subtitle: "评估你的AI基础，决定学习起点",
+                type: "single",
+                options: [
+                    { value: "expert", label: "经常使用，很熟悉ChatGPT/Midjourney等", aiLevel: 4 },
+                    { value: "intermediate", label: "用过几次，了解基本功能", aiLevel: 3 },
+                    { value: "beginner", label: "听说过但没怎么用过", aiLevel: 2 },
+                    { value: "none", label: "完全不了解", aiLevel: 1 }
+                ]
+            },
+            {
+                id: 4,
+                title: "你的内容创作能力如何？",
+                subtitle: "评估你的创作基础",
+                type: "single",
+                options: [
+                    { value: "pro_writer", label: "经常写作，文笔不错", contentSkill: 4 },
+                    { value: "good_logic", label: "能清楚表达，逻辑清晰", contentSkill: 3 },
+                    { value: "average", label: "一般水平，愿意学习", contentSkill: 2 },
+                    { value: "weak", label: "比较薄弱，需要提升", contentSkill: 1 }
+                ]
+            },
+            {
+                id: 5,
+                title: "你倾向的内容形式是？",
+                subtitle: "选择适合你的内容形式",
+                type: "single",
+                options: [
+                    { value: "text", label: "图文内容（小红书笔记、公众号文章）", format: "text" },
+                    { value: "short_video", label: "短视频（抖音、B站）", format: "video" },
+                    { value: "live", label: "直播分享", format: "live" },
+                    { value: "mixed", label: "都可以尝试", format: "mixed" }
+                ]
+            },
+            {
+                id: 6,
+                title: "你感兴趣的AI自媒体方向？",
+                subtitle: "可多选，我们会为你推荐最适合的",
+                type: "multiple",
+                options: [
+                    { value: "tools", label: "AI工具测评与教程" },
+                    { value: "art", label: "AI绘画创作" },
+                    { value: "writing", label: "AI写作技巧" },
+                    { value: "efficiency", label: "AI效率提升" },
+                    { value: "news", label: "AI资讯解读" },
+                    { value: "education", label: "AI教育培训" }
+                ]
+            },
+            {
+                id: 7,
+                title: "你之前的相关经验？",
+                subtitle: "了解你的基础，更好地规划路径",
+                type: "multiple",
+                options: [
+                    { value: "social_media", label: "做过自媒体（公众号/头条/知乎等）" },
+                    { value: "short_video", label: "拍过短视频（抖音/快手等）" },
+                    { value: "ecommerce", label: "做过电商/带货" },
+                    { value: "teaching", label: "有教学/培训经验" },
+                    { value: "none", label: "完全没有相关经验" }
+                ]
+            },
+            {
+                id: 8,
+                title: "你做AI自媒体的主要目标？",
+                subtitle: "明确目标，才能更好地达成",
+                type: "single",
+                options: [
+                    { value: "side_income", label: "增加副业收入", goal: "monetization" },
+                    { value: "skill_learning", label: "学习新技能", goal: "skill" },
+                    { value: "personal_brand", label: "打造个人IP", goal: "brand" },
+                    { value: "career_change", label: "职业转型", goal: "career" },
+                    { value: "interest", label: "兴趣爱好", goal: "hobby" }
+                ]
+            }
+        ];
+        
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        
+        // 初始化
+        function init() {
+            document.getElementById('totalQuestions').textContent = questions.length;
+            showQuestion(0);
+        }
+        
+        // 显示问题
+        function showQuestion(index) {
+            const question = questions[index];
+            const container = document.getElementById('questionContainer');
+            
+            let optionsHtml = '';
+            const isMultiple = question.type === 'multiple';
+            const inputType = isMultiple ? 'checkbox' : 'radio';
+            
+            question.options.forEach(option => {
+                const isChecked = userAnswers[question.id] && 
+                    (isMultiple ? userAnswers[question.id].includes(option.value) : userAnswers[question.id] === option.value);
+                
+                optionsHtml += `
+                    <label class="option ${isChecked ? 'selected' : ''}">
+                        <input type="${inputType}" 
+                               name="q${question.id}" 
+                               value="${option.value}"
+                               ${isChecked ? 'checked' : ''}
+                               onchange="handleOptionChange(${question.id}, '${option.value}', ${isMultiple})">
+                        ${option.label}
+                    </label>
+                `;
+            });
+            
+            container.innerHTML = `
+                <div class="question-section" style="animation-delay: 0.1s">
+                    <h3 class="question-title">${question.title}</h3>
+                    ${question.subtitle ? `<p class="question-subtitle">${question.subtitle}</p>` : ''}
+                    <div class="options">
+                        ${optionsHtml}
+                    </div>
+                </div>
+            `;
+            
+            // 更新进度
+            updateProgress(index);
+            
+            // 更新按钮状态
+            document.getElementById('prevBtn').style.display = index === 0 ? 'none' : 'block';
+            document.getElementById('nextBtn').textContent = index === questions.length - 1 ? '查看结果' : '下一题';
+        }
+        
+        // 处理选项变化
+        function handleOptionChange(questionId, value, isMultiple) {
+            if (isMultiple) {
+                if (!userAnswers[questionId]) {
+                    userAnswers[questionId] = [];
+                }
+                const index = userAnswers[questionId].indexOf(value);
+                if (index > -1) {
+                    userAnswers[questionId].splice(index, 1);
+                } else {
+                    userAnswers[questionId].push(value);
+                }
+            } else {
+                userAnswers[questionId] = value;
+            }
+            
+            // 更新选中状态
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => {
+                const input = option.querySelector('input');
+                if (input.checked) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+        }
+        
+        // 更新进度
+        function updateProgress(index) {
+            const progress = ((index + 1) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('currentQuestion').textContent = index + 1;
+        }
+        
+        // 下一题
+        function nextQuestion() {
+            if (!userAnswers[questions[currentQuestionIndex].id]) {
+                alert('请先选择一个选项');
+                return;
+            }
+            
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                showQuestion(currentQuestionIndex);
+            } else {
+                generateResult();
+            }
+        }
+        
+        // 上一题
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion(currentQuestionIndex);
+            }
+        }
+        
+        // 生成结果
+        async function generateResult() {
+            // 分析用户画像
+            const profile = analyzeProfile();
+            
+            // 显示结果
+            document.getElementById('questionnaire').classList.add('hidden');
+            document.getElementById('resultContainer').classList.remove('hidden');
+            
+            // 显示用户画像标签
+            const tagsHtml = profile.tags.map(tag => 
+                `<span class="profile-tag">${tag}</span>`
+            ).join('');
+            document.getElementById('profileTags').innerHTML = tagsHtml;
+            
+            // 生成个性化学习路径
+            const learningPath = generateLearningPath(profile);
+            displayLearningPath(learningPath);
+            
+            // 调用AI获取更详细的建议
+            if (typeof sendToAI === 'function') {
+                const aiAdvice = await sendToAI(profile);
+                if (aiAdvice) {
+                    // 显示AI建议
+                }
+            }
+        }
+        
+        // 分析用户画像
+        function analyzeProfile() {
+            const profile = {
+                tags: [],
+                timeAvailable: 0,
+                aiLevel: 0,
+                contentSkill: 0,
+                goal: '',
+                experience: [],
+                direction: [],
+                format: ''
+            };
+            
+            // 分析各个维度
+            questions.forEach(q => {
+                const answer = userAnswers[q.id];
+                if (!answer) return;
+                
+                if (q.id === 1) {
+                    const option = q.options.find(o => o.value === answer);
+                    if (option) {
+                        profile.timeAvailable = option.timeScore;
+                        profile.tags.push(option.label);
+                    }
+                }
+                
+                if (q.id === 2) {
+                    const option = q.options.find(o => o.value === answer);
+                    if (option) {
+                        profile.tags.push(`每天${option.label.toLowerCase()}`);
+                    }
+                }
+                
+                if (q.id === 3) {
+                    const option = q.options.find(o => o.value === answer);
+                    if (option) {
+                        profile.aiLevel = option.aiLevel;
+                        if (option.aiLevel <= 2) {
+                            profile.tags.push('AI新手');
+                        } else {
+                            profile.tags.push('AI熟手');
+                        }
+                    }
+                }
+                
+                if (q.id === 4) {
+                    const option = q.options.find(o => o.value === answer);
+                    if (option) {
+                        profile.contentSkill = option.contentSkill;
+                    }
+                }
+                
+                if (q.id === 5) {
+                    const option = q.options.find(o => o.value === answer);
+                    if (option) {
+                        profile.format = option.format;
+                        profile.tags.push(`偏好${option.label.split('（')[0]}`);
+                    }
+                }
+                
+                if (q.id === 6 && Array.isArray(answer)) {
+                    profile.direction = answer;
+                }
+                
+                if (q.id === 7 && Array.isArray(answer)) {
+                    profile.experience = answer;
+                    if (answer.includes('none')) {
+                        profile.tags.push('零基础');
+                    } else {
+                        profile.tags.push('有经验');
+                    }
+                }
+                
+                if (q.id === 8) {
+                    const option = q.options.find(o => o.value === answer);
+                    if (option) {
+                        profile.goal = option.goal;
+                        profile.tags.push(option.label);
+                    }
+                }
+            });
+            
+            return profile;
+        }
+        
+        // 生成个性化学习路径
+        function generateLearningPath(profile) {
+            const phases = [];
+            
+            // 根据用户画像定制阶段
+            if (profile.aiLevel <= 2) {
+                // AI新手需要更多基础内容
+                phases.push({
+                    name: '基础入门阶段',
+                    duration: '第1-7天',
+                    focus: 'AI工具认知与基础操作',
+                    tasks: [
+                        '了解ChatGPT、Midjourney等主流AI工具',
+                        '注册并完成基础设置',
+                        '学习prompt提示词基础',
+                        '完成10个AI工具实操练习',
+                        '确定自己的内容方向'
+                    ]
+                });
+            } else {
+                // AI熟手可以快速进入定位
+                phases.push({
+                    name: '快速定位阶段',
+                    duration: '第1-4天',
+                    focus: '赛道选择与竞品分析',
+                    tasks: [
+                        '分析3个细分赛道的市场潜力',
+                        '找出10个对标账号深度分析',
+                        '确定自己的差异化定位',
+                        '制定内容矩阵规划'
+                    ]
+                });
+            }
+            
+            // 内容创作阶段
+            if (profile.format === 'text') {
+                phases.push({
+                    name: '图文创作阶段',
+                    duration: '第5-14天',
+                    focus: '图文内容生产与优化',
+                    tasks: [
+                        '学习小红书/公众号爆款逻辑',
+                        '掌握AI辅助写作技巧',
+                        '每天产出1-2篇图文内容',
+                        '学习封面图设计技巧',
+                        'A/B测试优化内容'
+                    ]
+                });
+            } else if (profile.format === 'video') {
+                phases.push({
+                    name: '视频创作阶段',
+                    duration: '第5-14天',
+                    focus: '短视频制作与发布',
+                    tasks: [
+                        '学习短视频脚本创作',
+                        '掌握AI视频工具使用',
+                        '练习镜头表现力',
+                        '每天发布1个短视频',
+                        '数据分析与优化'
+                    ]
+                });
+            } else {
+                phases.push({
+                    name: '全媒体创作阶段',
+                    duration: '第5-14天',
+                    focus: '多平台内容布局',
+                    tasks: [
+                        '制定多平台内容策略',
+                        '图文视频结合创作',
+                        '建立内容生产流程',
+                        '跨平台引流技巧',
+                        '内容复用与改编'
+                    ]
+                });
+            }
+            
+            // 运营增长阶段
+            if (profile.goal === 'monetization') {
+                phases.push({
+                    name: '商业变现阶段',
+                    duration: '第15-21天',
+                    focus: '变现模式探索与实践',
+                    tasks: [
+                        '开通各平台创作者计划',
+                        '接洽首批商务合作',
+                        '设计知识付费产品',
+                        '建立私域流量池',
+                        '制定价格体系'
+                    ]
+                });
+            } else if (profile.goal === 'brand') {
+                phases.push({
+                    name: '品牌建设阶段',
+                    duration: '第15-21天',
+                    focus: '个人IP打造',
+                    tasks: [
+                        '设计个人品牌视觉体系',
+                        '建立粉丝社群',
+                        '打造标志性内容系列',
+                        '跨平台品牌统一',
+                        '影响力扩大策略'
+                    ]
+                });
+            } else {
+                phases.push({
+                    name: '持续优化阶段',
+                    duration: '第15-21天',
+                    focus: '数据驱动的内容优化',
+                    tasks: [
+                        '深度数据分析',
+                        '爆款内容复制',
+                        '粉丝互动提升',
+                        '内容质量升级',
+                        '长期规划制定'
+                    ]
+                });
+            }
+            
+            return phases;
+        }
+        
+        // 显示学习路径
+        function displayLearningPath(phases) {
+            let html = '';
+            phases.forEach((phase, index) => {
+                html += `
+                    <div class="phase" style="animation: fadeIn 0.5s forwards; animation-delay: ${index * 0.1}s; opacity: 0">
+                        <div class="phase-header">
+                            <span class="phase-name">${phase.name}</span>
+                            <span class="phase-duration">${phase.duration}</span>
+                        </div>
+                        <p style="color: #666; margin-bottom: 15px;">重点：${phase.focus}</p>
+                        <div class="task-list">
+                            ${phase.tasks.map(task => `
+                                <div class="task">
+                                    <div class="task-check"></div>
+                                    <span>${task}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('pathContent').innerHTML = html;
+        }
+        
+        // 重新开始
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            document.getElementById('questionnaire').classList.remove('hidden');
+            document.getElementById('resultContainer').classList.add('hidden');
+            showQuestion(0);
+        }
+        
+        // 开始学习
+        function startLearning() {
+            // 这里可以跳转到具体的学习页面或显示更详细的内容
+            alert('太棒了！让我们开始你的AI自媒体之旅！');
+            // 可以调用AI助手提供第一天的具体任务
+            toggleChat();
+            setTimeout(() => {
+                addAIMessage('根据你的学习计划，今天我们先从了解AI工具开始。我来为你介绍一下ChatGPT的基础使用技巧...');
+            }, 500);
+        }
+        
+        // 聊天功能
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            // 添加用户消息
+            addUserMessage(message);
+            input.value = '';
+            
+            // 调用AI API
+            try {
+                const response = await fetch('http://localhost:8000/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                
+                const data = await response.json();
+                addAIMessage(data.answer || '让我想想...');
+            } catch (error) {
+                addAIMessage('抱歉，我暂时无法回答。请稍后再试。');
+            }
+        }
+        
+        function addUserMessage(message) {
+            const messagesDiv = document.getElementById('chatMessages');
+            messagesDiv.innerHTML += `
+                <div class="message user">
+                    <div class="message-bubble">${message}</div>
+                </div>
+            `;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function addAIMessage(message) {
+            const messagesDiv = document.getElementById('chatMessages');
+            messagesDiv.innerHTML += `
+                <div class="message ai">
+                    <div class="message-bubble">${message}</div>
+                </div>
+            `;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        // 初始化
+        init();
+    </script>
+</body>
+</html>
